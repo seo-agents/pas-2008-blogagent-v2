@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>PAS2008 Blog Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0A1628;
+      --navy-light:#152A47;
+      --red:#A31E22;
+      --red-dark:#7E1519;
+      --red-light:#C33338;
+      --blue:#2563EB;
+      --cream:#F7F5F0;
+      --ink:#1A1A1A;
+      --line:#E2E0DA;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%}
+    body{
+      font-family:'Roboto',Arial,sans-serif;
+      background:var(--cream);
+      color:var(--ink);
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    .top-bar{background:#0D0D0D;width:100%}
+    .top-bar-inner{max-width:1400px;margin:0 auto;padding:8px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;font-size:12.5px}
+    .top-bar-left{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+    .top-bar .logo-slot{width:110px;height:32px;flex-shrink:0;display:flex;align-items:center}
+    .top-bar .logo-slot img{max-width:110px;max-height:32px;object-fit:contain}
+    .top-bar h1{color:#fff;font-family:'Roboto',sans-serif;font-weight:600;font-size:15px;margin:0;white-space:nowrap}
+    .top-bar .contact-info{display:flex;align-items:center;gap:18px}
+    .top-bar .contact-info a{color:#D8D8D8;font-weight:400;display:flex;align-items:center;gap:6px;text-decoration:none}
+    .top-bar .contact-info a:hover{color:#fff}
+    .top-bar .contact-info svg{width:13px;height:13px;flex-shrink:0}
+    .top-bar nav{display:flex;align-items:center;gap:20px}
+    .top-bar nav a{color:#D8D8D8;font-weight:500;text-decoration:none}
+    .top-bar nav a:hover{color:#fff}
+    .top-bar nav a.contact-btn{background:var(--red);color:#fff;font-weight:700;font-size:11.5px;letter-spacing:.5px;padding:7px 16px;border-radius:2px;text-transform:uppercase}
+
+    /* Language toggle */
+    .lang-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .lang-toggle-row label{margin:0}
+    .lang-toggle{position:relative;display:inline-flex;background:#EFEDE7;border:1px solid var(--line);border-radius:999px;padding:3px;width:220px}
+    .lang-toggle-option{flex:1;text-align:center;padding:7px 10px;font-size:12.5px;font-weight:600;color:#8A8A8A;border-radius:999px;cursor:pointer;position:relative;z-index:2;transition:color .2s ease;user-select:none}
+    .lang-toggle-option.active{color:#fff}
+    .lang-toggle-slider{position:absolute;top:3px;left:3px;width:calc(50% - 3px);height:calc(100% - 6px);background:var(--navy);border-radius:999px;transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:1}
+    .lang-toggle-slider.chinese{transform:translateX(100%)}
+    .lang-toggle-hint{font-size:11.5px;color:#8A8A8A;margin-top:4px}
+
+    /* Article view toggle (English/Chinese preview) */
+    .article-view-toggle{display:none;margin-bottom:10px}
+    .article-view-toggle .lang-toggle{width:200px}
+    .top-bar nav a.contact-btn:hover{opacity:.9;color:#fff}
+
+    .page-title-bar{background:var(--navy);width:100%;border-bottom:3px solid var(--red);margin-top:8px}
+    .page-title-inner{max-width:1400px;margin:0 auto;padding:22px 24px;text-align:center}
+    .page-title-bar h1{color:#fff;font-family:'Source Serif 4',serif;font-weight:600;font-size:22px;letter-spacing:.2px;margin:0}
+
+    .page-content{
+      max-width:900px;
+      width:100%;
+      margin:0 auto;
+      padding:32px 20px 60px;
+      flex:1 0 auto;
+    }
+
+    h2{font-family:'Source Serif 4',serif;color:var(--navy);font-weight:600;font-size:19px;border-bottom:2px solid var(--red);padding-bottom:8px;margin-top:0}
+    h3{font-family:'Source Serif 4',serif;color:var(--navy);font-weight:600;font-size:16px;border-left:4px solid var(--red);padding-left:10px}
+    input,textarea,select{width:100%;padding:10px 12px;margin:8px 0;font-size:14px;font-family:'Roboto',Arial,sans-serif;border:1px solid var(--line);border-radius:4px;box-sizing:border-box;background:#fff;color:var(--ink)}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:var(--red)}
+    textarea{height:120px;resize:vertical}
+    button{padding:11px 22px;margin:5px 5px 5px 0;font-size:13.5px;font-weight:700;letter-spacing:.2px;cursor:pointer;border:none;border-radius:4px;font-family:'Roboto',Arial,sans-serif;transition:opacity .15s,transform .1s;text-transform:uppercase}
+    button:hover{opacity:.9}
+    button:active{transform:translateY(1px)}
+    .submit{background:var(--red);color:#fff}
+    .approve{background:#2E6B4F;color:white}
+    .reject{background:var(--navy);color:white}
+    .resubmit{background:var(--red-light);color:#fff}
+    #step1-box{margin-bottom:20px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:24px;border-top:4px solid var(--red)}
+    #article-box{display:none;margin-top:20px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:24px;border-top:4px solid var(--red)}
+    #review-box{display:none;margin-top:20px;background:#FBEEEE;padding:20px;border-radius:6px;border:1px solid var(--red-light)}
+    #result-box{display:none;margin-top:20px;background:#EEF4F0;padding:20px;border-radius:6px;border:1px solid #B9D4C2}
+    #loading-box{display:none;margin-top:20px;background:#fff;border:1px solid var(--line);padding:28px;border-radius:6px;text-align:center}
+    #loading-text{font-size:14.5px;color:#555;margin:0}
+    #article-display{background:var(--cream);padding:18px;border-radius:4px;font-size:14px;max-height:600px;overflow-y:auto;line-height:1.65;color:var(--ink);border:1px solid var(--line)}
+    #article-display h1,#article-display h2,#article-display h3{font-family:'Source Serif 4',serif;color:var(--navy);border:none;padding:0}
+    #article-display p,#article-display strong{color:var(--ink);font-family:'Roboto',Arial,sans-serif}
+    #article-display p{text-align:justify}
+    #article-display a{color:var(--red);font-weight:600;text-decoration:underline}
+    .cost{background:#EEF2F7;border-left:3px solid var(--navy);padding:10px 14px;margin:10px 0;font-size:13px}
+    .seo{background:#EEF2F7;border-left:3px solid var(--navy-light);padding:10px 14px;margin:10px 0;font-size:13px}
+    .eeat{background:#FBEEEE;border-left:3px solid var(--red);padding:10px 14px;margin:10px 0;font-size:13px}
+    .unique{background:#FBEEEE;border-left:3px solid var(--red-light);padding:10px 14px;margin:10px 0;font-size:13px}
+    a{color:var(--red);font-weight:600}
+    label{font-size:13px;font-weight:600;color:var(--navy);margin-top:10px;display:block}
+    table{border-collapse:collapse;width:100%;table-layout:fixed;margin-top:10px;font-size:13px}
+    th{background:var(--navy);color:white;padding:9px 10px;text-align:left;font-weight:600;border:1px solid var(--navy)}
+    th:first-child,td:first-child{width:28%}
+    td{padding:9px 10px;border:1px solid var(--line);vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}
+    tr:nth-child(even){background:var(--cream)}
+    #summary-table{margin:10px 0}
+    .section-divider{border:none;border-top:1px solid var(--line);margin:18px 0}
+    .optional-label{color:#8A8578;font-weight:400;font-size:12px;margin-left:4px}
+    .info-label{color:var(--navy-light);font-size:12px;margin:4px 0 8px 0;display:block}
+    #revision-instructions-box{display:none;margin-top:8px}
+    .revision-type-btn{padding:10px 20px;margin:5px 5px 5px 0;font-size:13.5px;font-weight:600;cursor:pointer;border:1.5px solid var(--line);border-radius:4px;background:white;color:var(--navy);text-transform:none}
+    .revision-type-btn.selected{border-color:var(--red);background:#FBEEEE;color:var(--red)}
+    #revision-type-buttons{margin:10px 0}
+    .link-row{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+    .link-row input{margin:0}
+    .link-row input.url-field{flex:2}
+    .link-row input.anchor-field{flex:1}
+    .link-box{background:var(--cream);border:1px solid var(--line);border-radius:4px;padding:10px;margin:6px 0}
+    .link-box-label{font-size:12px;font-weight:600;color:var(--red);display:block;margin-bottom:6px}
+    .page-item{padding:6px 8px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;cursor:pointer}
+    .page-item:hover{background:var(--cream)}
+    .page-item input[type="checkbox"]{width:auto;margin:0;flex-shrink:0}
+    .page-item label{font-size:12px;color:var(--ink);font-weight:400;cursor:pointer;margin:0;word-break:break-all;flex:1}
+
+    /* ---- Verification record (banner and details) ---- */
+    .vc-warn{background:#FFF8E1;border-left:4px solid #F9A825;padding:6px 10px;margin:6px 0;font-size:13px;border-radius:4px}
+    .vc-context{background:#f4f4f4;padding:6px 10px;margin:6px 0;font-size:13px;border-radius:4px}
+    #verification-box{margin:12px 0 16px}
+    #verification-box summary{cursor:pointer}
+    #verification-box table{table-layout:auto;margin-top:6px;font-size:13px}
+    #verification-box th:first-child,#verification-box td:first-child{width:auto}
+    #verification-box tr:nth-child(even){background:transparent}
+    #verification-box ol,#verification-box ul{padding-left:20px}
+    #verification-box a{color:var(--red);font-weight:600}
+
+    /* ---- Verify claims table ---- */
+    #verify-claims-box{display:none;margin-top:10px}
+    .vc-intro{font-size:12.5px;color:#555;margin:4px 0 8px}
+    .vc-group-title{font-weight:700;color:var(--navy);margin:16px 0 6px;font-size:13.5px}
+    .vc-row{background:#fff;border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin:8px 0}
+    .vc-claim{font-size:13px;color:var(--ink);margin-bottom:4px}
+    .vc-why{font-size:12px;color:#555;margin:2px 0}
+    .vc-suggest{font-size:12px;color:var(--navy-light);margin:2px 0}
+    .vc-row select{margin:6px 0}
+    .vc-fields input,.vc-fields textarea{margin:4px 0;font-size:13px}
+    .vc-fields textarea{height:70px}
+
+    .footer-line{width:100%;height:6px;background:#0D0D0D;flex-shrink:0}
+
+    /* ---- Custom modal (replaces native alert/confirm) ---- */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,22,40,.6);z-index:9999;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.active{display:flex}
+    .modal-box{background:#fff;border-radius:8px;max-width:420px;width:100%;padding:28px 26px 22px;text-align:center;border-top:4px solid var(--red);box-shadow:0 12px 40px rgba(0,0,0,.3);animation:modal-pop .15s ease-out}
+    @keyframes modal-pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-icon{width:40px;height:40px;border-radius:50%;background:#FBEEEE;color:var(--red);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-family:'Source Serif 4',serif;font-weight:700;font-size:20px}
+    .modal-box p{font-size:14.5px;color:var(--ink);line-height:1.6;margin:0 0 22px;font-family:'Roboto',Arial,sans-serif}
+    .modal-buttons{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .modal-buttons button{margin:0}
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-bar-inner">
+    <div class="top-bar-left">
+      <div class="logo-slot"><img id="pas-logo" src="Premium-Accounting-Solutions-e1594690618232.webp" alt="Premium Accounting Solution logo" height="32"
+        onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='https://pas2008.co.nz/wp-content/uploads/2020/07/Premium-Accounting-Solutions-e1594690618232.png';}else{this.style.display='none';}"></div>
+      <h1>Premium Accounting Solution</h1>
+      <div class="contact-info">
+        <a href="tel:0303032868">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          09 303 2868
+        </a>
+        <a href="mailto:info@pas2008.co.nz">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" fill="none"/><path d="M22 6l-10 7L2 6"/><path d="M2 6h20v12H2z"/></svg>
+          info@pas2008.co.nz
+        </a>
+      </div>
+    </div>
+    <nav>
+      <a href="https://pas2008.co.nz/accounting-packages" target="_blank">Packages</a>
+      <a href="https://pas2008.co.nz/shop" target="_blank">Shop</a>
+      <a href="https://pas2008.co.nz/forms" target="_blank">Forms</a>
+      <a href="https://pas2008.co.nz/category/blog" target="_blank">Blog</a>
+      <a href="https://pas2008.co.nz/income-tax-calculator" target="_blank">Calculators</a>
+      <a href="https://pas2008.co.nz/about-us" target="_blank">About</a>
+      <a href="https://pas2008.co.nz/contact-us" target="_blank" class="contact-btn">Contact Us</a>
+    </nav>
+  </div>
+</div>
+
+<div class="page-title-bar">
+  <div class="page-title-inner">
+    <h1>Generate an Article</h1>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <div id="step1-box">
+    <h3>Step 1 - Start a New Article</h3>
+
+    <div class="lang-toggle-row" style="display:none">
+      <div>
+        <label style="display:block">Output Language</label>
+        <div class="lang-toggle-hint" id="lang-hint">Article will be researched, written and reviewed in English</div>
+      </div>
+      <div class="lang-toggle" onclick="toggleLanguage()">
+        <div class="lang-toggle-slider" id="lang-slider"></div>
+        <div class="lang-toggle-option active" id="lang-option-en">English</div>
+        <div class="lang-toggle-option" id="lang-option-zh">中文</div>
+      </div>
+    </div>
+
+    <label>Client Website URL (required)</label>
+    <input id="client_website" type="url" placeholder="e.g. https://pas2008.co.nz/"/>
+
+    
+    <label>Target Keyword (required)</label>
+    <input id="keyword" type="text" placeholder="e.g. how to file a GST return in New Zealand"/>
+    <label>Topic <span class="optional-label">(optional)</span></label>
+    <input id="topic" type="text" placeholder="e.g. GST Return Filing in New Zealand: Deadlines, Requirements and Common Mistakes"/>
+    <label>Company Insight <span class="optional-label">(optional)</span></label>
+    <textarea id="operator_topic_notes" placeholder="e.g. focus on small business owners, mention IRD deadlines, avoid overly technical tax jargon"></textarea>
+    <label>Target Audience <span class="optional-label">(optional)</span></label>
+    <input id="target_audience" type="text" placeholder="e.g. small business owners in Auckland, first-time company directors, contractors and self-employed individuals"/>
+    <label>Target Word Count <span class="optional-label">(optional)</span></label>
+    <select id="word_count">
+      <option value="1000">1000 words</option>
+      <option value="1300" selected>1300 words (default)</option>
+      <option value="1500">1500 words</option>
+      <option value="2000">2000 words</option>
+      <option value="2500">2500 words</option>
+      <option value="3000">3000 words</option>
+    </select>
+    <label>Target Country <span class="optional-label">(optional)</span></label>
+    <select id="target_country">
+      <option value="global" selected>Global / Worldwide (no specific country)</option>
+      <option value="us">United States</option>
+      <option value="gb">United Kingdom</option>
+      <option value="au">Australia</option>
+      <option value="nz">New Zealand</option>
+      <option value="ca">Canada</option>
+      <option value="lk">Sri Lanka</option>
+    </select>
+    <label>English Variety <span class="optional-label">(optional)</span></label>
+    <select id="english_variety">
+      <option value="British" selected>British English</option>
+      <option value="American">American English</option>
+      <option value="Australian">Australian English</option>
+      <option value="Canadian">Canadian English</option>
+    </select>
+    <hr class="section-divider">
+    <button class="submit" onclick="submitKeyword()">Research and Generate Article</button>
+  </div>
+
+  <div id="loading-box">
+    <p id="loading-text">Running full pipeline...</p>
+  </div>
+
+  <div id="article-box">
+    <h3>Step 2 - Generated Article</h3>
+    <div id="verification-box"></div>
+    <div id="vc-note"></div>
+    <div class="unique" id="unique-display"></div>
+    <div class="cost" id="cost-display"></div>
+    <div class="seo" id="seo-display"></div>
+    <div class="eeat" id="eeat-display"></div>
+    <h3>Article Summary</h3>
+    <div id="summary-table"></div>
+    <h3>Article</h3>
+    <div class="article-view-toggle" id="article-view-toggle">
+      <div class="lang-toggle" onclick="toggleArticleView()">
+        <div class="lang-toggle-slider" id="article-view-slider"></div>
+        <div class="lang-toggle-option active" id="article-view-option-en">English</div>
+        <div class="lang-toggle-option" id="article-view-option-zh">中文</div>
+      </div>
+    </div>
+    <div id="article-display"></div>
+    <h3>Step 3 - Human Review</h3>
+    <p>Read the article and review all scores above. Is it acceptable to publish?</p>
+    <button class="approve" onclick="showApprove()">Approve and Save to Google Docs</button>
+    <button class="reject" onclick="showReview()">Request Revisions</button>
+    <button class="reject" id="undo-btn" style="display:none" onclick="undoVerify()">Undo the last changes</button>
+  </div>
+
+  <div id="review-box">
+    <h3>Request Revisions</h3>
+    <p>Select the type of revision needed:</p>
+    <div id="revision-type-buttons">
+      <button class="revision-type-btn" onclick="selectRevisionType('minor_edit', this)">Minor Edit</button>
+      <button class="revision-type-btn" onclick="selectRevisionType('new_angle', this)">New Angle</button>
+      <button class="revision-type-btn" onclick="selectRevisionType('less_ai', this)">Make it Less AI</button>
+      <button class="revision-type-btn" onclick="selectRevisionType('verify_claims', this)">Verify Facts</button>
+    </div>
+    <div id="revision-instructions-box" style="display:none">
+      <label>Revision Instructions (required)</label>
+      <textarea id="revision_instructions" placeholder="e.g. Shorten the introduction. Add a section on GST filing deadlines."></textarea>
+    </div>
+    <div id="new-angle-box" style="display:none;background:#E8F4FD;padding:12px;border-radius:6px;margin:10px 0;border:1px solid #185FA5">
+      <label style="color:#185FA5;font-weight:600">Your Unique Angle / Human Insight (required)</label>
+      <p style="font-size:12px;color:#555;margin:4px 0 8px 0">Provide a unique insight only you or your client could know — first-hand data, a contrarian opinion with evidence, or an angle no competitor has covered.</p>
+      <textarea id="new_angle_instructions" placeholder="e.g. Based on our client data, businesses that file provisional tax early avoid 80% of late-payment penalties we see each year..."></textarea>
+    </div>
+    <div id="verify-claims-box">
+      <p class="vc-intro">These are the statements that still need a decision. For each one you want to deal with, choose what to do and give your source if you have one. Rows left on "No action" stay as they are.</p>
+      <div id="claims-table"></div>
+    </div>
+    <input type="hidden" id="revision_type" value=""/>
+    <br/>
+    <button class="resubmit" onclick="submitRevision()">Submit Revision Request</button>
+    <button class="submit" onclick="hideReview()">Go back to article</button>
+    <button class="reject" onclick="changeKeyword()">Change Keyword - Start Over</button>
+  </div>
+
+  <div id="result-box">
+    <h3>Article saved to Google Docs</h3>
+    <p id="doc-link"></p>
+    <button class="submit" onclick="startOver()">Start new article</button>
+  </div>
+
+</div>
+
+<div class="footer-line"></div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-icon" id="modal-icon">!</div>
+    <p id="modal-message"></p>
+    <div class="modal-buttons" id="modal-buttons"></div>
+  </div>
+</div>
+
+<script>
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+  }
+
+  function showAlertModal(message) {
+    document.getElementById('modal-icon').textContent = '!';
+    document.getElementById('modal-message').textContent = message;
+    const buttons = document.getElementById('modal-buttons');
+    buttons.innerHTML = '';
+    const okBtn = document.createElement('button');
+    okBtn.textContent = 'OK';
+    okBtn.className = 'submit';
+    okBtn.onclick = closeModal;
+    buttons.appendChild(okBtn);
+    document.getElementById('modal-overlay').classList.add('active');
+  }
+
+  function showConfirmModal(message, onConfirm) {
+    document.getElementById('modal-icon').textContent = '?';
+    document.getElementById('modal-message').textContent = message;
+    const buttons = document.getElementById('modal-buttons');
+    buttons.innerHTML = '';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'reject';
+    cancelBtn.onclick = closeModal;
+    const confirmBtn = document.createElement('button');
+    confirmBtn.textContent = 'Confirm';
+    confirmBtn.className = 'approve';
+    confirmBtn.onclick = function() { closeModal(); onConfirm(); };
+    buttons.appendChild(cancelBtn);
+    buttons.appendChild(confirmBtn);
+    document.getElementById('modal-overlay').classList.add('active');
+  }
+
+  const WEBHOOK_URL = 'https://n8n-fmid.srv1801788.hstgr.cloud/webhook/caee6e3f-debb-4b48-aff9-85d4780bc8e4';
+  const ALLOWED_PAGE_ORIGIN = 'http://localhost:3000';   // the page address the n8n Webhook node allows
+
+  // Plain-English reasons when the request fails, so the cause is on screen
+  function networkMessage(e) {
+    const here = (location.protocol === 'file:' || location.origin === 'null') ? 'a local file (file://)' : location.origin;
+    let m = 'The page could not reach n8n (' + (e && e.message ? e.message : e) + '). It tried: ' + WEBHOOK_URL + '. This page is open from: ' + here + '.';
+    if (here !== ALLOWED_PAGE_ORIGIN) m += ' n8n only accepts the page address ' + ALLOWED_PAGE_ORIGIN + ', so open the page from exactly that address.';
+    if (/\/webhook-test\//.test(WEBHOOK_URL)) m += ' This is the test address: click "Listen for test event" in n8n first. It answers one request per click.';
+    else m += ' This is the production address: the workflow must be switched on.';
+    return m;
+  }
+  // n8n sends an error as JSON too, so a reply is only an article if the request succeeded and it is not an error object
+  function looksLikeError(res, item) {
+    return !res.ok || !item || (typeof item === 'object' && !item.article && (item.code || item.message));
+  }
+  function replyMessage(res, raw) {
+    const t = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 160);
+    return 'n8n answered (HTTP ' + res.status + ') but not with an article' + (t ? ': "' + t + '"' : ' (the answer was empty)') + '. Open the latest execution in n8n to see which node stopped.';
+  }
+  let currentData       = {};
+  let currentKeyword    = '';
+  let currentTopic      = '';
+  let currentNotes      = '';
+  let currentCountry    = 'global';
+  let currentEnglish    = 'British';
+  let currentClientName = '';
+
+  function getClientName(url) {
+    if (!url) return 'Client';
+    try {
+      const domain = new URL(url).hostname.replace('www.', '').split('.')[0];
+      return domain.charAt(0).toUpperCase() + domain.slice(1);
+    } catch(e) { return 'Client'; }
+  }
+
+  let outputLanguage = 'English';
+  function toggleLanguage() {
+    outputLanguage = outputLanguage === 'English' ? 'Chinese' : 'English';
+    const isZh = outputLanguage === 'Chinese';
+    document.getElementById('lang-slider').classList.toggle('chinese', isZh);
+    document.getElementById('lang-option-en').classList.toggle('active', !isZh);
+    document.getElementById('lang-option-zh').classList.toggle('active', isZh);
+    document.getElementById('lang-hint').textContent = isZh
+      ? 'Article will be researched, written and reviewed in English, then translated to Simplified Chinese with matching internal links'
+      : 'Article will be researched, written and reviewed in English';
+  }
+
+  let currentArticleEn = '';
+  let currentArticleZh = '';
+  let articleViewIsZh = false;
+  function toggleArticleView() {
+    if (!currentArticleZh) return;
+    articleViewIsZh = !articleViewIsZh;
+    document.getElementById('article-view-slider').classList.toggle('chinese', articleViewIsZh);
+    document.getElementById('article-view-option-en').classList.toggle('active', !articleViewIsZh);
+    document.getElementById('article-view-option-zh').classList.toggle('active', articleViewIsZh);
+    document.getElementById('article-display').innerHTML = articleViewIsZh ? currentArticleZh : currentArticleEn;
+  }
+
+  function selectRevisionType(type, btn) {
+    document.getElementById('revision_type').value = type;
+    document.querySelectorAll('.revision-type-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById('revision-instructions-box').style.display = 'none';
+    document.getElementById('new-angle-box').style.display = 'none';
+    document.getElementById('verify-claims-box').style.display = 'none';
+    document.getElementById('revision_instructions').value = '';
+    document.getElementById('new_angle_instructions').value = '';
+    if (type === 'verify_claims') {
+      buildClaimsTable();
+      document.getElementById('verify-claims-box').style.display = 'block';
+    } else if (type === 'minor_edit') {
+      document.getElementById('revision-instructions-box').style.display = 'block';
+    } else if (type === 'new_angle') {
+      document.getElementById('new-angle-box').style.display = 'block';
+    }
+  }
+
+  window.addEventListener('beforeunload', function(e) {
+    if (pipelineRunning) {
+      e.preventDefault();
+      e.returnValue = '';
+      return '';
+    }
+  });
+
+  let pipelineRunning = false;
+  function showLoading(message) {
+    pipelineRunning = true;
+    document.getElementById('step1-box').style.display   = 'none';
+    document.getElementById('article-box').style.display = 'none';
+    document.getElementById('review-box').style.display  = 'none';
+    document.getElementById('result-box').style.display  = 'none';
+    document.getElementById('loading-text').innerText    = message || 'Running full pipeline...';
+    document.getElementById('loading-box').style.display = 'block';
+  }
+
+  function hideLoading() {
+    pipelineRunning = false;
+    document.getElementById('loading-box').style.display = 'none';
+  }
+
+  async function submitKeyword() {
+    const keyword       = document.getElementById('keyword').value.trim();
+    const topic         = document.getElementById('topic').value.trim();
+    const notes         = document.getElementById('operator_topic_notes').value.trim();
+    const country       = document.getElementById('target_country').value;
+    const english       = document.getElementById('english_variety').value;
+    const clientWebsite = document.getElementById('client_website').value.trim();
+    const wordCount     = document.getElementById('word_count').value || '1300';
+    const targetAudience = document.getElementById('target_audience').value.trim();
+    if (!keyword) { showAlertModal('Please enter a keyword first'); return; }
+    currentKeyword    = keyword;
+    currentTopic      = topic;
+    currentNotes      = notes;
+    currentCountry    = country;
+    currentEnglish    = english;
+    currentClientName = getClientName(clientWebsite);
+    showLoading('Running full pipeline...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:               'generate',
+          output_language:      outputLanguage,
+          keyword:              keyword,
+          topic:                topic,
+          operator_topic_notes: notes,
+          target_country:       country,
+          english_variety:      english,
+          client_website:       clientWebsite,
+          client_name:          currentClientName,
+          target_audience:      targetAudience,
+          word_count:           wordCount
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading();
+        document.getElementById('step1-box').style.display = 'block';
+        return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('step1-box').style.display = 'block'; return; }
+      currentData = item;
+      hideLoading();
+      displayArticle(item);
+      document.getElementById('article-box').style.display = 'block';
+    } catch(e) {
+      console.error(e);
+      showAlertModal(networkMessage(e));
+      hideLoading();
+      document.getElementById('step1-box').style.display = 'block';
+    }
+  }
+
+  // the running cost is kept to four decimals; show two
+  function fmtCost(v) { const n = parseFloat(String(v || '').replace('$', '')); return '$' + (isNaN(n) ? 0 : n).toFixed(2); }
+
+  function displayArticle(item) {
+    document.getElementById('undo-btn').style.display = 'none';
+    document.getElementById('vc-note').innerHTML = '';
+    // Verification record: status banner, items needing attention, facts checked, worked example, links and length
+    const vbox = document.getElementById('verification-box');
+    // after a Verify Facts submission the editor has decided these points, so the record is not shown again
+    vbox.style.display = item.reviewed_by_editor ? 'none' : '';
+    vbox.innerHTML = item.reviewed_by_editor ? '' : (item.verification_record_html
+      ? item.verification_record_html
+      : '<div style="background:#FFF8E1;border-left:6px solid #F9A825;padding:10px 14px;border-radius:4px;font-size:13px">No verification result was returned for this draft.</div>');
+    document.getElementById('unique-display').innerHTML =
+      '<strong>Unique Factor:</strong> ' + (item.unique_factor || 'N/A');
+    document.getElementById('cost-display').innerHTML =
+      '<strong>Total Cost (all steps so far):</strong> ' + fmtCost(item.article_cost);
+    const seo = item.seo_check || {};
+    document.getElementById('seo-display').innerHTML =
+      '<strong>SEO Check:</strong>' +
+      ' Keyword in intro: ' + (seo.keyword_in_intro ? 'Yes' : 'No') +
+      ' | Keyword in heading: ' + (seo.keyword_in_heading ? 'Yes' : 'No') +
+      ' | Density: ' + (seo.keyword_density || 'N/A') +
+      ' | Word count: ' + (seo.total_words || 0);
+    const eeat = item.eeat_score || {};
+    document.getElementById('eeat-display').innerHTML =
+      '<strong>E-E-A-T Score:</strong>' +
+      ' Overall: ' + (eeat.overall || 0) + '/10' +
+      ' | Experience: ' + (eeat.experience || 0) +
+      ' | Expertise: ' + (eeat.expertise || 0) +
+      ' | Authority: ' + (eeat.authoritativeness || 0) +
+      ' | Trust: ' + (eeat.trustworthiness || 0);
+    document.getElementById('summary-table').innerHTML = `
+      <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td><strong>Keyword</strong></td><td>${item.keyword || ''}</td></tr>
+        <tr><td><strong>Search Volume</strong></td><td>${item.search_volume || ''}</td></tr>
+        <tr><td><strong>Keyword Difficulty</strong></td><td>${item.keyword_difficulty || ''}</td></tr>
+        <tr><td><strong>Secondary Keywords</strong></td><td>${item.secondary_keywords || ''}</td></tr>
+        <tr><td><strong>Unique Factor</strong></td><td>${item.unique_factor || ''}</td></tr>
+        <tr><td><strong>Internal Links Used</strong></td><td>${item.internal_links_used || 'None'}</td></tr>
+        <tr><td><strong>External Links Used</strong></td><td>${item.external_links_found || 'None'}</td></tr>
+        <tr><td><strong>FAQ Sources</strong></td><td>${(item.faq_sources || []).join('<br>') || 'None'}</td></tr>
+        <tr><td><strong>E-E-A-T Overall</strong></td><td>${(item.eeat_score || {}).overall || ''}/10</td></tr>
+        <tr><td><strong>AI Detection</strong></td><td>${item.ai_detection_score !== null && item.ai_detection_score !== undefined ? item.ai_detection_score + '% - ' + (item.ai_detection_verdict || '') : 'Not checked' + (item.ai_detection_error ? ' (' + escHtml(item.ai_detection_error) + ')' : '')}</td></tr>
+        <tr><td><strong>Total Cost</strong></td><td>${fmtCost(item.article_cost)}</td></tr>
+      </table>
+    `;
+    // Store both language versions; show the toggle only when a Chinese version exists
+    currentArticleEn = item.article || '';
+    currentArticleZh = item.article_zh || '';
+    if (currentArticleZh) {
+      document.getElementById('article-view-toggle').style.display = 'block';
+      articleViewIsZh = false;
+      document.getElementById('article-view-slider').classList.remove('chinese');
+      document.getElementById('article-view-option-en').classList.add('active');
+      document.getElementById('article-view-option-zh').classList.remove('active');
+    } else {
+      document.getElementById('article-view-toggle').style.display = 'none';
+    }
+    document.getElementById('article-display').innerHTML = currentArticleEn;
+  }
+
+  function showApprove() {
+    const status = currentData.reviewed_by_editor ? '' : (currentData.verification_status || '');
+    const n = (currentData.verification_unresolved || []).length;
+    if (status === 'on_hold') {
+      showConfirmModal('This draft is ON HOLD: verification is required.' + (n ? ' ' + n + ' point(s) are unresolved.' : '') + ' Read the verification record above before approving. Approve and save to Google Docs anyway?', submitApproval);
+    } else if (status === 'needs_review') {
+      showConfirmModal('This draft needs review.' + (n ? ' ' + n + ' item(s) need your attention.' : '') + ' Approve and save to Google Docs anyway?', submitApproval);
+    } else {
+      showConfirmModal('Approve this article and save to Google Docs?', submitApproval);
+    }
+  }
+
+  function showReview() {
+    document.getElementById('revision_type').value = '';
+    document.querySelectorAll('.revision-type-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('revision-instructions-box').style.display = 'none';
+    document.getElementById('new-angle-box').style.display = 'none';
+    document.getElementById('verify-claims-box').style.display = 'none';
+    document.getElementById('revision_instructions').value = '';
+    document.getElementById('new_angle_instructions').value = '';
+    document.getElementById('review-box').style.display  = 'block';
+    document.getElementById('article-box').style.display = 'none';
+  }
+
+  function hideReview() {
+    document.getElementById('review-box').style.display  = 'none';
+    document.getElementById('article-box').style.display = 'block';
+  }
+
+  function resetForm() {
+    document.getElementById('keyword').value              = '';
+    document.getElementById('topic').value                 = '';
+    document.getElementById('operator_topic_notes').value = '';
+    document.getElementById('client_website').value       = '';
+    const taField = document.getElementById('target_audience'); if(taField) taField.value = '';
+    currentKeyword = ''; currentTopic = ''; currentNotes = ''; currentCountry = 'global';
+    currentEnglish = 'British'; currentClientName = '';
+    currentData = {};
+  }
+
+  function changeKeyword() {
+    document.getElementById('review-box').style.display  = 'none';
+    document.getElementById('article-box').style.display = 'none';
+    resetForm();
+    document.getElementById('step1-box').style.display   = 'block';
+    document.getElementById('target_audience').value = '';
+  }
+
+  async function submitRevision() {
+    const revisionType = document.getElementById('revision_type').value;
+    const instructions = document.getElementById('revision_instructions').value.trim();
+    if (!revisionType) { showAlertModal('Please select a revision type first'); return; }
+    if (revisionType === 'minor_edit' && !instructions) {
+      showAlertModal('Please describe what needs to be changed'); return;
+    }
+    if (revisionType === 'verify_claims') {
+      const responses = collectClaimResponses();
+      if (!responses.length) { showAlertModal('Choose an action for at least one statement first.'); return; }
+      const bad = responses.find(r => (r.action === 'write_from_source' && !r.source_notes) || (r.action === 'own_wording' && !r.own_wording));
+      if (bad) { showAlertModal(bad.action === 'write_from_source' ? 'Paste what the source says in the notes box for every row set to "Write it from my source".' : 'Type your wording for every row set to "Use my own wording".'); return; }
+      hideReview();
+      await submitVerifyClaims(responses);
+      return;
+    }
+    if (revisionType === 'new_angle') {
+      const newAngleInstructions = document.getElementById('new_angle_instructions').value.trim();
+      if (!newAngleInstructions) {
+        showAlertModal('Please provide your unique angle or human insight before submitting'); return;
+      }
+      hideReview();
+      await submitNewAngle(newAngleInstructions);
+      return;
+    }
+    hideReview();
+    if (revisionType === 'minor_edit') {
+      await submitMinorEdit(instructions);
+    } else if (revisionType === 'less_ai') {
+      await submitLessAI('');
+    }
+  }
+
+
+  // ---------- Verify Claims ----------
+  let vcRows = [];
+  let undoData = null;
+
+  // After a Minor Edit the AI node made only the exact edits asked for and nothing was re-verified.
+  // Keep the earlier verification data (so Verify Facts still works), hide the old record, and let the editor undo.
+  function afterMinorEdit(item) {
+    const prev = currentData || {};
+    ['verification_status','verification_record_html','verification_record_text','verification_unresolved','verification_coverage','verification_facts_used','verification_reasons','fact_check_claims','fact_check_status','links_removed'].forEach(k => {
+      if (item[k] === undefined && prev[k] !== undefined) item[k] = prev[k];
+    });
+    item.reviewed_by_editor = true;
+    undoData = prev;
+    currentData = item;
+  }
+  function showMinorEditNote(item) {
+    const rep = item.minor_edit_report || [];
+    const done = rep.filter(r => /^applied/.test(String(r.status || '')));
+    const failed = rep.filter(r => /^not applied/.test(String(r.status || '')));
+    const why = s => String(s || '').replace(/^not applied:\s*/, '');
+    let html = '<div class="seo"><strong>' + (done.length ? 'Minor edit applied (' + done.length + ' change' + (done.length === 1 ? '' : 's') + ').' : 'No change was made.') + '</strong>'
+      + (done.length ? ' The changed wording has not been fact-checked. Read it before you approve. If something is wrong, use "Undo the last changes".' : '');
+    if (item.minor_edit_error) html += '<br>' + escHtml(item.minor_edit_error);
+    if (failed.length) html += '<br><strong>Not applied (' + failed.length + '):</strong><ul style="margin:6px 0 0 18px">' + failed.slice(0, 6).map(r => '<li>' + (r.find ? '&ldquo;' + escHtml(String(r.find).slice(0, 80)) + (String(r.find).length > 80 ? '&hellip;' : '') + '&rdquo; &ndash; ' : '') + escHtml(why(r.status)) + '</li>').join('') + '</ul>';
+    html += '</div>';
+    document.getElementById('vc-note').innerHTML = html;
+    document.getElementById('undo-btn').style.display = 'inline-block';
+  }
+
+  function undoVerify() {
+    if (!undoData) return;
+    currentData = undoData; undoData = null;
+    displayArticle(currentData);
+  }
+  function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  // Where is this statement in the article, and can an answer be applied to it automatically?
+  function vcPattern(s) {
+    let p = '';
+    for (const ch of String(s).trim()) {
+      if (/\s/.test(ch)) p += '(?:\\s|&nbsp;)+';
+      else if (ch === "'" || ch === '\u2019' || ch === '\u2018') p += "(?:'|\u2019|\u2018|&#8217;|&#39;|&rsquo;)";
+      else if (ch === '"' || ch === '\u201C' || ch === '\u201D') p += '(?:"|\u201C|\u201D|&quot;|&ldquo;|&rdquo;)';
+      else if (ch === '&') p += '(?:&|&amp;)';
+      else p += ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    return new RegExp(p, 'g');
+  }
+  function vcLocate(claim) {
+    const html = String(currentData.article || '').replace(/<script[\s\S]*?<\/script>/gi, '\u0000');
+    const re = vcPattern(claim);
+    const found = html.match(re) || [];
+    if (!found.length) {
+      // not found in the HTML: is it there in the plain text? Then the words run across a link or formatting
+      const tidy = s => String(s).replace(/\s+([.,;:!?)\]\u201D\u2019])/g, '$1');   // an older record may have a stray space before punctuation
+      const plain = tidy(html.replace(/<[^>]+>/g, ''));
+      return { state: (plain.match(vcPattern(tidy(claim))) || []).length ? 'markup' : 'missing' };
+    }
+    if (found.length > 1) return { state: 'multiple' };
+    if (/<[^>]+>/.test(found[0])) return { state: 'markup' };
+    re.lastIndex = 0;
+    const m = re.exec(html);
+    const before = html.slice(0, m.index), after = html.slice(m.index + m[0].length);
+    const startsOk = before === '' || /(?:>|[.!?]["\u201D\u2019)]?\s+)$/.test(before) || /\u0000\s*$/.test(before);
+    const endsOk = /[.!?]["\u201D\u2019)]*$/.test(m[0].trim()) && /^(?:\s*$|\s*<|\s*\u0000|\s+[A-Z\u201C"\u2018'(\d$])/.test(after);
+    const fragment = !(startsOk && endsOk);
+    let sentence = '';
+    if (fragment) {   // only part of a sentence: find the whole sentence so the editor can see what it belongs to
+      const ps = html.lastIndexOf('<p', m.index), pe = html.indexOf('</p>', m.index);
+      if (ps >= 0 && pe > ps) {
+        const text = html.slice(ps, pe).replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+        const key = String(claim).replace(/\s+/g, ' ').trim().slice(0, 25).toLowerCase();
+        const sents = text.split(/(?<=[.!?])\s+(?=[A-Z\u201C"\u2018'(])/);
+        sentence = sents.find(x => x.toLowerCase().includes(key)) || text;
+      }
+    }
+    return { state: 'ok', fragment, sentence };
+  }
+  const VC_WHY_NOT = {
+    markup: 'This sentence contains a link or formatting, so it cannot be changed here. Change it by hand in the article.',
+    missing: 'These exact words were not found in the article, so they cannot be changed here. Look for the sentence in the article and change it by hand.',
+    multiple: 'These words appear more than once in the article, so it is not clear which one to change. Change it by hand.'
+  };
+
+  function buildClaimsTable() {
+    vcRows = [];
+    const unresolved = currentData.verification_unresolved || [];
+    // Hold items always; other items only when there is something to decide (an unverified claim, or a wording fix with a suggestion)
+    unresolved.filter(u => !u.uneditable && (u.level === 'hold' || u.verdict !== 'WORDING' || u.suggested_wording)).forEach(u => vcRows.push({ id: u.id, kind: 'claim', group: u.level === 'hold' ? 'hold' : 'review', verdict: u.verdict || '', level: u.level || '', claim: u.claim || '', why: u.why || '', suggested: u.suggested_wording || '' }));
+    const cov = (currentData.verification_coverage || {}).uncovered || [];
+    cov.forEach((s, i) => vcRows.push({ id: 'u' + (i + 1), kind: 'sentence', group: 'sentence', verdict: '', level: '', claim: s, why: 'No official source was matched to this sentence.', suggested: '' }));
+    vcRows.forEach(r => { r.loc = vcLocate(r.claim); });
+    // words that are no longer in the article (changed after the check): nothing to decide, so they are listed apart, without actions
+    const goneRows = vcRows.filter(r => r.loc.state === 'missing');
+    vcRows = vcRows.filter(r => r.loc.state !== 'missing');
+    const box = document.getElementById('claims-table');
+    const goneHtml = goneRows.length
+      ? '<div class="vc-group-title">No longer in the article (' + goneRows.length + ')</div><div class="vc-warn">These words are not in the article now, probably because they were changed after the check. There is nothing to decide here.</div><ul style="margin:6px 0 0 18px;color:#666;font-size:13px">' + goneRows.map(r => '<li>&ldquo;' + escHtml(String(r.claim).slice(0, 140)) + (String(r.claim).length > 140 ? '&hellip;' : '') + '&rdquo;</li>').join('') + '</ul>'
+      : '';
+    if (!vcRows.length) { box.innerHTML = '<p>There is nothing to verify: no statement needs a decision.</p>' + goneHtml; return; }
+    const groups = [['hold', 'Must be resolved before relying on this draft'], ['review', 'Other items to check'], ['sentence', 'Sentences that were not checked automatically']];
+    let html = '';
+    groups.forEach(([g, title]) => {
+      const idx = vcRows.map((r, i) => r.group === g ? i : -1).filter(i => i >= 0);
+      if (!idx.length) return;
+      html += '<div class="vc-group-title">' + escHtml(title) + ' (' + idx.length + ')</div>';
+      idx.forEach(i => {
+        const r = vcRows[i];
+        const label = r.verdict === 'UNVERIFIED' ? 'One way to word it more generally (not checked against a source)' : 'Suggested wording';
+        html += '<div class="vc-row" data-i="' + i + '">'
+          + '<div class="vc-claim">&ldquo;' + escHtml(r.claim) + '&rdquo;</div>'
+          + (r.why ? '<div class="vc-why">Why: ' + escHtml(r.why) + '</div>' : '')
+          + (r.suggested ? '<div class="vc-suggest">' + escHtml(label) + ': ' + escHtml(r.suggested) + '</div>' : '')
+          + (r.loc.state !== 'ok' ? '<div class="vc-warn">' + escHtml(VC_WHY_NOT[r.loc.state]) + '</div>' : '')
+          + (r.loc.state === 'ok' && r.loc.fragment ? '<div class="vc-context">This is only part of a sentence. The whole sentence in the article: &ldquo;' + escHtml(r.loc.sentence) + '&rdquo;<br>Any wording you give replaces just these words, so start and end it the way they do.</div>' : '')
+          + '<select class="vc-action" onchange="onVcAction(this)">'
+          + '<option value="">No action</option>'
+          + (r.loc.state === 'ok' && r.suggested ? '<option value="use_suggested">Use the suggested wording</option>' : '')
+          + (r.loc.state === 'ok' ? '<option value="write_from_source">Write it from my source</option>' : '')
+          + (r.loc.state === 'ok' ? '<option value="own_wording">Use my own wording</option>' : '')
+          + (r.loc.state === 'ok' && !r.loc.fragment ? '<option value="remove">Remove the sentence</option>' : '')
+          + '<option value="leave">Leave as written (I accept it)</option>'
+          + '</select>'
+          + '<div class="vc-fields" style="display:none">'
+          + '<input class="vc-url" type="url" placeholder="Source web address (optional, kept as a reference)"/>'
+          + '<textarea class="vc-notes" placeholder="Paste what the source says, or your notes"></textarea>'
+          + '<textarea class="vc-own" placeholder="Your wording for this sentence"></textarea>'
+          + '</div></div>';
+      });
+    });
+    box.innerHTML = html + goneHtml;
+  }
+
+  function onVcAction(sel) {
+    const row = sel.closest('.vc-row');
+    const f = row.querySelector('.vc-fields');
+    const a = sel.value;
+    f.style.display = (a === 'write_from_source' || a === 'own_wording') ? 'block' : 'none';
+    row.querySelector('.vc-notes').style.display = a === 'write_from_source' ? 'block' : 'none';
+    row.querySelector('.vc-own').style.display = a === 'own_wording' ? 'block' : 'none';
+  }
+
+  function collectClaimResponses() {
+    const out = [];
+    document.querySelectorAll('#claims-table .vc-row').forEach(row => {
+      const r = vcRows[Number(row.getAttribute('data-i'))];
+      const action = row.querySelector('.vc-action').value;
+      if (!r || !action) return;
+      out.push({
+        id: r.id, kind: r.kind, claim: r.claim, verdict: r.verdict, level: r.level, suggested_wording: r.suggested, action: action,
+        source_url: row.querySelector('.vc-url').value.trim(),
+        source_notes: row.querySelector('.vc-notes').value.trim(),
+        own_wording: row.querySelector('.vc-own').value.trim()
+      });
+    });
+    return out;
+  }
+
+  async function submitVerifyClaims(responses) {
+    showLoading('Applying your answers and re-checking...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:                 'verify_claims',
+          claim_responses:        responses,
+          fact_check_claims:      currentData.fact_check_claims     || [],
+          fact_check_status:      currentData.fact_check_status     || {},
+          links_removed:          currentData.links_removed         || [],
+          keyword:                currentKeyword,
+          topic:                  currentTopic                      || currentData.topic || '',
+          target_country:         currentCountry,
+          article:                currentData.article               || '',
+          unique_factor:          currentData.unique_factor         || '',
+          content_brief:          currentData.content_brief         || '',
+          content_gaps:           currentData.content_gaps          || '',
+          secondary_keywords:     currentData.secondary_keywords    || '',
+          search_volume:          currentData.search_volume         || 0,
+          keyword_difficulty:     currentData.keyword_difficulty    || 0,
+          operator_topic_notes:   currentData.operator_topic_notes  || '',
+          english_variety:        currentEnglish,
+          internal_links:         currentData.internal_links        || [],
+          internal_link_1:        currentData.internal_link_1       || '',
+          internal_link_2:        currentData.internal_link_2       || '',
+          internal_link_3:        currentData.internal_link_3       || '',
+          internal_link_4:        currentData.internal_link_4       || '',
+          internal_anchor_text_1: currentData.internal_anchor_text_1 || '',
+          internal_anchor_text_2: currentData.internal_anchor_text_2 || '',
+          internal_anchor_text_3: currentData.internal_anchor_text_3 || '',
+          internal_anchor_text_4: currentData.internal_anchor_text_4 || '',
+          external_links_found:   currentData.external_links_found  || '',
+          client_name:            currentClientName,
+          word_count:             currentData.word_count            || '1300',
+          seo_check:              currentData.seo_check             || {},
+          eeat_score:             currentData.eeat_score            || {},
+          article_cost:           currentData.article_cost          || '',
+          real_questions:         currentData.real_questions        || [],
+          output_language:        outputLanguage,
+          faq_sources:            currentData.faq_sources           || [],
+          inputTokens:            currentData.inputTokens           || 0,
+          outputTokens:           currentData.outputTokens          || 0,
+          target_audience:        currentData.target_audience       || '',
+          utility_pages:          currentData.utility_pages         || []
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading(); document.getElementById('article-box').style.display = 'block'; return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('article-box').style.display = 'block'; return; }
+      undoData = currentData;
+      item.reviewed_by_editor = true;   // the editor has decided the listed points
+      currentData = item; hideLoading(); displayArticle(item);
+      document.getElementById('article-box').style.display = 'block';
+      document.getElementById('undo-btn').style.display = 'inline-block';
+      // say which answers could not be applied, and why, so the editor knows to change them by hand
+      const plainReason = s => {
+        const t = String(s || '').replace(/^not applied:\s*/, '');
+        if (/text not found|match contains markup/.test(t)) return 'the sentence contains a link or formatting, so change it by hand in the article';
+        if (/found \d+ times/.test(t)) return 'the sentence appears more than once, so change it by hand';
+        if (/not a whole sentence/.test(t)) return 'the quoted words are only part of a sentence, so change it by hand';
+        return t;
+      };
+      const failedRows = (item.fact_check_report || []).filter(r => /^not applied/.test(String(r.status || '')));
+      document.getElementById('vc-note').innerHTML = '<div class="seo"><strong>Your Verify Facts changes are in the article below.</strong> Read them before you approve. If something is wrong, use "Undo the last changes".'
+        + (failedRows.length ? '<br><strong>Not applied (' + failedRows.length + '):</strong><ul style="margin:6px 0 0 18px">' + failedRows.slice(0, 6).map(r => '<li>&ldquo;' + escHtml(String(r.claim).slice(0, 80)) + (String(r.claim).length > 80 ? '&hellip;' : '') + '&rdquo; &ndash; ' + escHtml(plainReason(r.status)) + '</li>').join('') + '</ul>' : '')
+        + '</div>';
+    } catch(e) {
+      console.error(e); showAlertModal(networkMessage(e));
+      hideLoading(); document.getElementById('article-box').style.display = 'block';
+    }
+  }
+
+  async function submitMinorEdit(instructions) {
+    showLoading('Rewriting article...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:                 'minor_edit',
+          revision_instructions:  instructions,
+          keyword:                currentKeyword,
+          topic:                  currentTopic                      || currentData.topic || '',
+          target_country:         currentCountry,
+          article:                currentData.article               || '',
+          unique_factor:          currentData.unique_factor         || '',
+          content_brief:          currentData.content_brief         || '',
+          content_gaps:           currentData.content_gaps          || '',
+          secondary_keywords:     currentData.secondary_keywords    || '',
+          search_volume:          currentData.search_volume         || 0,
+          keyword_difficulty:     currentData.keyword_difficulty    || 0,
+          operator_topic_notes:   currentData.operator_topic_notes  || '',
+          english_variety:        currentEnglish,
+          internal_links:         currentData.internal_links        || [],
+          internal_link_1:        currentData.internal_link_1       || '',
+          internal_link_2:        currentData.internal_link_2       || '',
+          internal_link_3:        currentData.internal_link_3       || '',
+          internal_link_4:        currentData.internal_link_4       || '',
+          internal_anchor_text_1: currentData.internal_anchor_text_1 || '',
+          internal_anchor_text_2: currentData.internal_anchor_text_2 || '',
+          internal_anchor_text_3: currentData.internal_anchor_text_3 || '',
+          internal_anchor_text_4: currentData.internal_anchor_text_4 || '',
+          external_links_found:   currentData.external_links_found  || '',
+          client_name:            currentClientName,
+          word_count:             currentData.word_count            || '1300',
+          seo_check:              currentData.seo_check             || {},
+          eeat_score:             currentData.eeat_score            || {},
+          article_cost:           currentData.article_cost          || '',
+          real_questions:         currentData.real_questions        || [],
+          output_language:        outputLanguage,
+          faq_sources:            currentData.faq_sources           || [],
+          inputTokens:            currentData.inputTokens           || 0,
+          outputTokens:           currentData.outputTokens          || 0,
+          target_audience:        currentData.target_audience       || '',
+          utility_pages:          currentData.utility_pages         || []
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading(); document.getElementById('article-box').style.display = 'block'; return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('article-box').style.display = 'block'; return; }
+      afterMinorEdit(item);
+      hideLoading(); displayArticle(item);
+      document.getElementById('article-box').style.display = 'block';
+      showMinorEditNote(item);
+    } catch(e) {
+      console.error(e); showAlertModal(networkMessage(e));
+      hideLoading(); document.getElementById('article-box').style.display = 'block';
+    }
+  }
+
+  async function submitNewAngle(instructions) {
+    showLoading('Generating new angle...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:                 'new_angle',
+          revision_instructions:  instructions,
+          keyword:                currentKeyword,
+          topic:                  currentTopic                      || currentData.topic || '',
+          target_country:         currentCountry,
+          content_gaps:           currentData.content_gaps          || '',
+          competitor_summary:     currentData.competitor_summary    || '',
+          secondary_keywords:     currentData.secondary_keywords    || '',
+          search_volume:          currentData.search_volume         || 0,
+          keyword_difficulty:     currentData.keyword_difficulty    || 0,
+          operator_topic_notes:   currentData.operator_topic_notes  || '',
+          english_variety:        currentEnglish,
+          internal_links:         currentData.internal_links        || [],
+          internal_link_1:        currentData.internal_link_1       || '',
+          internal_link_2:        currentData.internal_link_2       || '',
+          internal_link_3:        currentData.internal_link_3       || '',
+          internal_link_4:        currentData.internal_link_4       || '',
+          internal_anchor_text_1: currentData.internal_anchor_text_1 || '',
+          internal_anchor_text_2: currentData.internal_anchor_text_2 || '',
+          internal_anchor_text_3: currentData.internal_anchor_text_3 || '',
+          internal_anchor_text_4: currentData.internal_anchor_text_4 || '',
+          client_name:            currentClientName,
+          article:                currentData.article               || '',
+          unique_factor:          currentData.unique_factor         || '',
+          content_brief:          currentData.content_brief         || '',
+          word_count:             currentData.word_count            || '1300',
+          seo_check:              currentData.seo_check             || {},
+          eeat_score:             currentData.eeat_score            || {},
+          article_cost:           currentData.article_cost          || '',
+          real_questions:         currentData.real_questions        || [],
+          output_language:        outputLanguage,
+          faq_sources:            currentData.faq_sources           || [],
+          inputTokens:            currentData.inputTokens           || 0,
+          outputTokens:           currentData.outputTokens          || 0,
+          target_audience:        currentData.target_audience       || '',
+          utility_pages:          currentData.utility_pages         || [],
+          external_links_found:   currentData.external_links_found  || ''
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading(); document.getElementById('article-box').style.display = 'block'; return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('article-box').style.display = 'block'; return; }
+      currentData = item; hideLoading(); displayArticle(item);
+      document.getElementById('article-box').style.display = 'block';
+    } catch(e) {
+      console.error(e); showAlertModal(networkMessage(e));
+      hideLoading(); document.getElementById('article-box').style.display = 'block';
+    }
+  }
+
+  async function submitLessAI(instructions) {
+    showLoading('Running humanizer to reduce AI detection...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:                 'less_ai',
+          revision_instructions:  instructions,
+          keyword:                currentKeyword,
+          topic:                  currentTopic                      || currentData.topic || '',
+          target_country:         currentCountry,
+          article:                currentData.article               || '',
+          unique_factor:          currentData.unique_factor         || '',
+          content_brief:          currentData.content_brief         || '',
+          content_gaps:           currentData.content_gaps          || '',
+          secondary_keywords:     currentData.secondary_keywords    || '',
+          search_volume:          currentData.search_volume         || 0,
+          keyword_difficulty:     currentData.keyword_difficulty    || 0,
+          operator_topic_notes:   currentData.operator_topic_notes  || '',
+          english_variety:        currentEnglish,
+          internal_links:         currentData.internal_links        || [],
+          internal_link_1:        currentData.internal_link_1       || '',
+          internal_link_2:        currentData.internal_link_2       || '',
+          internal_link_3:        currentData.internal_link_3       || '',
+          internal_link_4:        currentData.internal_link_4       || '',
+          internal_anchor_text_1: currentData.internal_anchor_text_1 || '',
+          internal_anchor_text_2: currentData.internal_anchor_text_2 || '',
+          internal_anchor_text_3: currentData.internal_anchor_text_3 || '',
+          internal_anchor_text_4: currentData.internal_anchor_text_4 || '',
+          client_name:            currentClientName,
+          word_count:             currentData.word_count            || '1300',
+          seo_check:              currentData.seo_check             || {},
+          eeat_score:             currentData.eeat_score            || {},
+          article_cost:           currentData.article_cost          || '',
+          real_questions:         currentData.real_questions        || [],
+          output_language:        outputLanguage,
+          faq_sources:            currentData.faq_sources           || [],
+          inputTokens:            currentData.inputTokens           || 0,
+          outputTokens:           currentData.outputTokens          || 0,
+          target_audience:        currentData.target_audience       || '',
+          utility_pages:          currentData.utility_pages         || []
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading(); document.getElementById('article-box').style.display = 'block'; return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('article-box').style.display = 'block'; return; }
+      currentData = item; hideLoading(); displayArticle(item);
+      document.getElementById('article-box').style.display = 'block';
+    } catch(e) {
+      console.error(e); showAlertModal(networkMessage(e));
+      hideLoading(); document.getElementById('article-box').style.display = 'block';
+    }
+  }
+
+  async function submitApproval() {
+    showLoading('Saving to Google Docs...');
+    try {
+      const res = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action:                 'approved',
+          verification_status:    currentData.reviewed_by_editor ? 'reviewed_by_editor' : (currentData.verification_status || ''),
+          verification_record_text: currentData.verification_record_text || '',
+          keyword:                currentKeyword,
+          topic:                  currentTopic                      || currentData.topic || '',
+          article:                currentData.article               || '',
+          article_zh:             currentData.article_zh            || '',
+          unique_factor:          currentData.unique_factor         || '',
+          content_brief:          currentData.content_brief         || '',
+          content_gaps:           currentData.content_gaps          || '',
+          secondary_keywords:     currentData.secondary_keywords    || '',
+          search_volume:          currentData.search_volume         || 0,
+          keyword_difficulty:     currentData.keyword_difficulty    || 0,
+          operator_topic_notes:   currentData.operator_topic_notes  || '',
+          competitor_summary:     currentData.competitor_summary    || '',
+          internal_links:         currentData.internal_links        || [],
+          internal_link_1:        currentData.internal_link_1       || '',
+          internal_link_2:        currentData.internal_link_2       || '',
+          internal_links_used:    currentData.internal_links_used   || '',
+          external_links_found:   currentData.external_links_found  || '',
+          client_name:            currentClientName,
+          seo_check:              currentData.seo_check             || {},
+          eeat_score:             currentData.eeat_score            || {},
+          ai_detection_score:     currentData.ai_detection_score     ?? null,
+          ai_detection_verdict:   currentData.ai_detection_verdict   || '',
+          article_cost:           currentData.article_cost          || '',
+          real_questions:         currentData.real_questions        || [],
+          output_language:        outputLanguage,
+          faq_sources:            currentData.faq_sources           || [],
+          inputTokens:            currentData.inputTokens           || 0,
+          outputTokens:           currentData.outputTokens          || 0
+        })
+      });
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch(e) {
+        showAlertModal(replyMessage(res, raw));
+        hideLoading(); document.getElementById('article-box').style.display = 'block'; return;
+      }
+      const item = Array.isArray(data) ? (data[0].json || data[0]) : data;
+      if (looksLikeError(res, item)) { showAlertModal(replyMessage(res, raw)); hideLoading(); document.getElementById('article-box').style.display = 'block'; return; }
+      hideLoading();
+      document.getElementById('result-box').style.display = 'block';
+      const docId  = item.docId  || '';
+      const docUrl = docId
+        ? 'https://docs.google.com/document/d/' + docId + '/edit'
+        : (item.docUrl || '');
+      const docTitle = item.docTitle || currentKeyword + ' Draft';
+      document.getElementById('doc-link').innerHTML =
+        '<a href="' + docUrl + '" target="_blank">Open Google Doc: ' + docTitle + '</a>';
+    } catch(e) {
+      console.error(e); showAlertModal(networkMessage(e));
+      hideLoading(); document.getElementById('article-box').style.display = 'block';
+    }
+  }
+
+  function startOver() {
+    resetForm();
+    document.getElementById('article-box').style.display  = 'none';
+    document.getElementById('review-box').style.display   = 'none';
+    document.getElementById('result-box').style.display   = 'none';
+    document.getElementById('loading-box').style.display  = 'none';
+    document.getElementById('step1-box').style.display    = 'block';
+    document.getElementById('target_audience').value = '';
+  }
+</script>
+</body>
+</html>
